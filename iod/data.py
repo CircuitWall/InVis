@@ -30,10 +30,10 @@ class SparkDataWrangler(DataWrangler):
         return SQLContext(sc)
 
     def create_file_datasource(self, path: str, delimiter: str = ','):
-        return self.sql_context.read.load(path,
-                                          format='com.databricks.spark.csv',
-                                          header='true',
-                                          inferSchema='true')
+        return self.sql_context.read.option('delimiter', delimiter).load(path,
+                                                                         format='com.databricks.spark.csv',
+                                                                         header='true',
+                                                                         inferSchema='true')
 
     def merge_datasource(self, left, right, on: str,
                          join_mode: str = 'inner'):
