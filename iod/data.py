@@ -42,17 +42,9 @@ class SparkDataWrangler(DataWrangler):
         left.join(right, on=on, how=join_mode)
         pass
 
-    def lower_columns(self, data, *args):
+    def transform_datasource(self, data, expression: str):
         data = self._convert_dataframe(data)
-        for value in args:
-            data = data.withColumn(value, lower(col(value)))
-        return data
-
-    def upper_columns(self, data, **kwargs):
-        data = self._convert_dataframe(data)
-        for key, value in kwargs.items():
-            data = data.withColumnRenamed(key, value)
-        return data
+        return data.selectExpr(expression)
 
     def rename_columns(self, data, **kwargs):
         data = self._convert_dataframe(data)
