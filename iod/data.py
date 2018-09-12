@@ -39,12 +39,7 @@ class SparkDataWrangler(DataWrangler):
                          join_mode: str = 'inner'):
         left = self._convert_dataframe(left)
         right = self._convert_dataframe(right)
-        left.join(right, on=on, how=join_mode)
-        pass
-
-    def transform_datasource(self, data, expression: str):
-        data = self._convert_dataframe(data)
-        return data.selectExpr(expression)
+        return left.join(right, on=on, how=join_mode)
 
     def rename_columns(self, data, **kwargs):
         data = self._convert_dataframe(data)
@@ -52,18 +47,22 @@ class SparkDataWrangler(DataWrangler):
             data = data.withColumnRenamed(key, value)
         return data
 
-    def filter_datasource(self, data, include: List[str] = None, exclude: List[str] = None,
-                          where: str = None):
+    def transform_datasource(self, data, include: List[str] = None, exclude: List[str] = None,
+                             where: str = None):
         data = self._convert_dataframe(data)
-        if include is not None:
+        if include is None:
             # Opt in columns
-            data = data.select(include)
-        elif exclude is not None:
+            include = data.schema.names
+
+        if exclude is not None:
             # Opt out coulumns
-            data = data.drop(exclude)
+            include = include - exclude
+
+        to_return = data.selectExpr(include)
+        if where is None:
+            return to_return
         else:
-            print("No change.")
-        return data.filter(where)
+            return to_return.filter(where)
 
     def _convert_dataframe(self, data) -> dataframe:
         if isinstance(data, DataFrame):
